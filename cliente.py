@@ -24,14 +24,20 @@ class Ejecucion:
         self.lock.release()
         # Create a TCP/IP socket
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        #Creacion del socket UDP
+        sock_UDP = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
         
         # Conectar socket al puerto donde se esta escuchando
-        server_address = ('192.168.182.128', 8888)
-        print(sys.stderr, 'connecting to %s port %s' % server_address)
-        sock.connect(server_address)
+        server_address_tcp = ('localhost', 8888)
+        print(sys.stderr, 'connecting to %s port %s' % server_address_tcp)
+        sock.connect(server_address_tcp)
         file = open("./archivosRecibidos/"+nombre+"-prueba-"+str(num_clientes)+".txt", "w")
        
-        
+        #Conectar udp
+        server_address_udp = ('localhost', 3000)
+        sock_UDP.connect(server_address_udp)
+
         try:
             
             # Enviar datos
@@ -62,12 +68,16 @@ class Ejecucion:
                 num_paquetes=0
                 start = time.time()
 
+                print('hol1')
                 while (True):
-                       
-                    data = sock.recv(1024)
+                    print('hola2')
+                    data = sock_UDP.recvfrom(1024)
+                    print('hola3')
+
                     
                     if data:
                         try:
+                            print(data.decode('utf-8'))
                             file.write(data.decode('utf-8') + os.linesep)
                             md5.update(data)
                             num_paquetes+=1

@@ -7,6 +7,10 @@ from datetime import datetime
 # Crear socket tcp/ip
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
+#Crear socket UDP
+sock_UDP = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+
 num_conexiones = int(input('Ingrese la cantidad de conexiones que quiere atender'))
 
 while (num_conexiones>25 and num_conexiones <= 0):
@@ -16,10 +20,17 @@ while (num_conexiones>25 and num_conexiones <= 0):
 #Creación del Log
 #log = open('./'+datetime.today().strftime('%Y-%m-%d-%H:%M:%S')+".txt", "w")
 
+#conectar socket_UDP al puerto
+server_address_udp = ('localhost', 3000)
+sock_UDP.bind(server_address_udp)
+print("UDP server up and listening")
+
 # conectar socket al puerto
-server_address = ('localhost', 8888)
-print(sys.stderr, 'starting up on %s port %s' % server_address)
-sock.bind(server_address)
+server_address_tcp = ('localhost', 8888)
+print(sys.stderr, 'starting up on %s port %s' % server_address_tcp)
+sock.bind(server_address_tcp)
+
+
 
 #archivo a transmitir
 filename = input('Ingrese el nombre del archivo a enviar')
@@ -37,10 +48,10 @@ buf = archivo.read(1024)
 md5 = hashlib.md5() 
 
 while(buf):
+    #Saca el hash del archivo
     md5.update(buf)
     buf = archivo.read(1024)
 
-#Saca el hash del archivo
   
 # Listen for incoming connections
 sock.listen(25)
@@ -67,7 +78,7 @@ for i in range(num_conexiones):
         connection.sendall(bytes(filename, 'utf-8'))
         
         data = connection.recv(32)
-        
+        #server_address = ('localhost', 8888)
         print(data.decode('utf-8'))
         # Recibir datos y retransmitirlos
        
@@ -78,7 +89,8 @@ for i in range(num_conexiones):
             recibido = connection.recv(32)
             if(recibido.decode('utf-8') == 'Hash recibido'):
                 while (l):
-                    connection.send(l) 
+                    print(l)
+                    sock_UDP.sendto(l, server_address_udp)
                     l= f.read(1024)
             
                 connection.send(l)
